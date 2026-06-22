@@ -54,7 +54,7 @@ class ProduitController extends Controller
             'image' => ['nullable', 'string', 'max:255'],
         ]);
 
-        $produit = Produit::update($validated);
+        $produit->update($validated);
 
         return response()->json($produit,201);
     }
