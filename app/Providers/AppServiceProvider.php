@@ -2,8 +2,10 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -20,6 +22,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        Schema::defaultStringLength(191);
+        RateLimiter::for('devis', function (Request $request) {
+            return Limit::perHour(5)->by($request->ip())
+                ->response(fn() => response()->json([
+                    'message' => 'Trop de demandes. Réessayez dans une heure.'
+                ], 429));
+        });
     }
 }

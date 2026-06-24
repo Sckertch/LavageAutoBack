@@ -22,3 +22,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('devis/{devis}/download', [DevisController::class, 'download']);
     Route::patch('devis/{devis}/statut', [DevisController::class, 'updateStatut']);
 });
+
+Route::middleware('throttle:devis')->post('/devis', [DevisController::class, 'store']);
