@@ -10,6 +10,7 @@ use App\Http\Controllers\DevisController;
 Route::get('prestations', [PrestationController::class, 'index']);
 Route::get('produits', [ProduitController::class, 'index']);
 Route::post('login', [AuthController::class, 'login']);
+Route::get('/devis/{devis}/pdf', [DevisController::class, 'downloadPublic']);
 
 Route::middleware('throttle:devis')->post('devis', [DevisController::class, 'store']);
 

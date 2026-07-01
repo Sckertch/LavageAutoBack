@@ -23,7 +23,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         RateLimiter::for('devis', function (Request $request) {
-            return Limit::perHour(5)->by($request->ip())
+            return Limit::perHour(100)->by($request->ip())
                 ->response(fn() => response()->json([
                     'message' => 'Trop de demandes. Réessayez dans une heure.'
                 ], 429));

@@ -72,9 +72,9 @@ class DevisController extends Controller
         $devis->update(['fichier_path' => $filePath]);
 
         return response()->json([
-            'message'   => 'Devis créé avec succès',
-            'devis_id'  => $devis->id,
-            'fichier'   => $filePath,
+            'message'  => 'Devis créé avec succès',
+            'devis_id' => $devis->id,
+            'fichier'  => $filePath,
         ], 201);
     }
 
@@ -112,6 +112,39 @@ class DevisController extends Controller
         );
     }
 
+    /**
+     * Téléchargement public temporaire (5 min après création).
+     */
+    public function downloadPublic(Devis $devis): \Illuminate\Http\Response|\Illuminate\Http\JsonResponse
+    {
+        if (!$devis->fichier_path) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Ce devis ne possède pas de PDF généré.',
+            ], 404);
+        }
+
+        if (!Storage::exists($devis->fichier_path)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Le fichier PDF est introuvable sur le serveur.',
+            ], 404);
+        }
+
+        if ($devis->created_at->diffInMinutes(now()) > 1) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Ce lien a expiré. Veuillez générer un nouveau devis ou consulté le devis reçu par email.',
+                'expired' => true,
+            ], 410);
+        }
+
+        $pdfContent = Storage::get($devis->fichier_path);
+
+        return response($pdfContent, 200)
+            ->header('Content-Type', 'application/pdf')
+            ->header('Content-Disposition', 'inline; filename="devis-' . $devis->id . '.pdf"');
+    }
     /**
      * Mettre à jour le statut d'un devis (accepté, refusé).
      */
