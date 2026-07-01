@@ -17,7 +17,7 @@ class StoreDevisRequest extends FormRequest
             'client_nom'       => ['required', 'string', 'max:100', 'regex:/^[\pL\s\-\'\.]+$/u'],
             'client_email'     => ['required', 'email:rfc,dns', 'max:255'],
             'client_telephone' => ['nullable', 'string', 'regex:/^(\+33|0)[1-9](\d{2}){4}$/'],
-            'lignes'           => ['required', 'array', 'min:1', 'max:50'], // ← max 50 lignes
+            'lignes'           => ['required', 'array', 'min:1', 'max:50'],
             'lignes.*.type'    => ['required', 'in:prestation,produit'],
             'lignes.*.id'      => ['required', 'integer', 'min:1'],
             'lignes.*.quantite'=> ['required', 'integer', 'min:1', 'max:100'],
@@ -45,11 +45,22 @@ class StoreDevisRequest extends FormRequest
 
                 if (!$model) {
                     $validator->errors()->add(
-                        "lignes.$index.id",
-                        "L'élément de type {$ligne['type']} avec l'id {$ligne['id']} est introuvable."
+                        "lignes.$index",
+                        "Un ou plusieurs éléments sélectionnés sont invalides."
                     );
                 }
             }
         });
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'client_nom'       => trim(strip_tags($this->client_nom ?? '')),
+            'client_email'     => strtolower(trim($this->client_email ?? '')),
+            'client_telephone' => $this->client_telephone
+                ? preg_replace('/\s+/', '', trim($this->client_telephone))
+                : null,
+        ]);
     }
 }
